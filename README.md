@@ -1,2 +1,2 @@
 # par-la-kernels
-Work-efficient parallel linear algebra kernels
+Hacking on parallel linear algebra kernels
