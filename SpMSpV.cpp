@@ -26,26 +26,24 @@ void SpMSpV::multiply(const SparseMatrix& a, const SparseVector& x, SparseVector
   if (a.nnz_ > MAX_MATRIX_NNZ)
     fatal("The number of non-zero elements in the matrix exceeds the maximum supported value.");
 
-  // For each bucket b, y_offset_by_bucket_[b] stores the starting offset at which the elements of
-  // bucket b will be written to the output vector in step 5.
-  alignas(64) size_t y_offset_by_bucket[NUM_BUCKETS];
-
-  // For each thread i and bucket j, bcount[i * NUM_BUCKETS + j] stores the number of entries that thread i
-  // will insert into bucket j in parallel Step 1.
-  alignas(64) size_t bcount[NUM_THREADS * NUM_BUCKETS];
-
-  // For each thread i and bucket j, thr_bucket_start_offset_[i * NUM_BUCKETS + j] stores the starting
-  // position in the scaled_values_ array at which thread i will insert its contribution to bucket j
-  // in parallel step 1.
+  // For each thread t and bucket b, thr_bucket_start_offset[t * NUM_BUCKETS + b] stores the starting
+  // position in the scaled_values_ array at which thread t will insert its contribution to bucket b
+  // in step 2.
   alignas(64) size_t thr_bucket_start_offset[NUM_THREADS * NUM_BUCKETS];
+
+  // For each thread t and bucket b, bcount[t * NUM_BUCKETS + b] stores the number of entries that
+  // thread t will insert into bucket b in step 2.
+  alignas(64) size_t bcount[NUM_THREADS * NUM_BUCKETS];
+  
+  // For each bucket b, y_offset_by_bucket_[b] stores the starting offset at which the elements of
+  // the corresponding bucket will be written to the output vector in step 5.
+  alignas(64) size_t y_offset_by_bucket[NUM_BUCKETS];
   
   #pragma omp parallel
   {
     // -------------------------------- Step 0 (Preprocessing) -------------------------------------------
-    // In this step, we populate the bcount_ array of length (NUM_THREADS * NUM_BUCKETS).
-    // bcount[i * NUM_BUCKETS + j] stores the number of entries that the i-th thread will insert into the j-th
-    // bucket in Step 2. This preprocesing step allows to avoid synchronization among threads when populating the
-    // buckets in Step 2.
+    // In this step, we populate the bcount array of length (NUM_THREADS * NUM_BUCKETS).
+    // This preprocesing step allows to avoid synchronization among threads when populating the buckets in step 2.
     const int thr_idx = omp_get_thread_num();
     size_t* const bcount_chunk = &bcount[thr_idx * NUM_BUCKETS];
     memset(bcount_chunk, 0, NUM_BUCKETS * sizeof(size_t));
@@ -66,12 +64,8 @@ void SpMSpV::multiply(const SparseMatrix& a, const SparseVector& x, SparseVector
     #pragma omp barrier
     
     // ------------------------ Step 1 (Calculation of bucket boundaries) ------------------------------
-    // In this step, we read the contents of the bcount_ array and populate thr_bucket_start_offset.
-    // For each thread i and bucket j, thr_bucket_start_offset[i * NUM_BUCKETS + j] stores the starting
-    // position in the scaled_values_ array at which thread i will insert its contribution to bucket j
-    // in step 2.
-    //
-    // Additionally, for each bucket j, we populate the start_offset_ and size_ fields of bucket_state_array_[j],
+    // In this step, we read the contents of the bcount array and populate thr_bucket_start_offset.
+    // Additionally, for each bucket b, we populate the start_offset_ and size_ fields of bucket_state_array_[b],
     // with the bucket's starting offset in the scaled_values_ array and its size, respectively.
     #pragma omp single
     {
@@ -88,11 +82,11 @@ void SpMSpV::multiply(const SparseMatrix& a, const SparseVector& x, SparseVector
     }
 
     // ------------- Step 2 (Accumulation of columns of a into buckets) -------------------------
-    // In this step, the values of the columns A[:,j] for which x[j] != 0 are extracted and multiplied by
+    // In this step, the values of the columns a[:,j] for which x[j] != 0 are extracted and multiplied by
     // the nonzero values of x. The results of this pairwise multiplication operation are stored in buckets
     // together with their row indices. Each bucket corresponds to a subset of consecutive rows of the matrix.
     size_t* const bucket_start_offset = &thr_bucket_start_offset[thr_idx * NUM_BUCKETS];
-            
+
     for (size_t t = slice_start_pos; t < slice_end_pos; ++t) { // For every nonzero entry x[j] in this slice of x      
       const idx_t j = x.nz_values_[t].idx_;
       const double x_j = x.nz_values_[t].value_;
@@ -136,17 +130,17 @@ void SpMSpV::multiply(const SparseMatrix& a, const SparseVector& x, SparseVector
     // written to the output vector in step 5. This is a simple prefix sum computation.
     #pragma omp single
     {
-      size_t offset = 0;
+      size_t y_offset = 0;
       for (int b = 0; b < NUM_BUCKETS; ++b) {
-	y_offset_by_bucket[b] = offset;
-	offset += bucket_state_array_[b].num_uinds_;
+	y_offset_by_bucket[b] = y_offset;
+	y_offset += bucket_state_array_[b].num_uinds_;
       }
 
-      // Note that at this program location, offset represents the total number of non-zero elements
+      // Note that at this program location, y_offset represents the total number of non-zero elements
       // in the output vector.
-      y->nnz_ = offset;
+      y->nnz_ = y_offset;
     }
- 
+
     // -------------------- Step 5 (Population of the output vector) ---------------------
     // For each bucket b, transfer the non-zero values from the SPA to the output vector.
     #pragma omp for schedule(guided, 2)
@@ -160,4 +154,3 @@ void SpMSpV::multiply(const SparseMatrix& a, const SparseVector& x, SparseVector
     }
   } // end omp parallel
 }
-

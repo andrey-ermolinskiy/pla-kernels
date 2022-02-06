@@ -16,8 +16,12 @@ SparseMatrix::~SparseMatrix() {
 }
 
 SparseMatrix::SparseMatrix(SparseMatrix&& src) :
-  rows_{src.rows_}, cols_{src.cols_}, nz_values_{src.nz_values_}, rowids_{src.rowids_},
-  colptrs_{src.colptrs_}, nnz_{src.nnz_} {
+  rows_{src.rows_},
+  cols_{src.cols_},
+  nz_values_{src.nz_values_},
+  rowids_{src.rowids_},
+  colptrs_{src.colptrs_},
+  nnz_{src.nnz_} {
   src.nz_values_ = nullptr;
   src.rowids_ = nullptr;
   src.colptrs_ = nullptr;

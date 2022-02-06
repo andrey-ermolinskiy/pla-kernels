@@ -8,7 +8,7 @@
 // Reference:
 //   Ariful Azad, & Aydin Buluc. (2016). "A work-efficient parallel sparse matrix-sparse vector multiplication algorithm."
 
-class SpMSpV {
+class SpMSpV final {
 public: // --------------------------------- Public interface -----------------------------------------------
   // Constructor: Initialize the multipler for the specified problem size and allocate the necessary resources.
   //
@@ -24,18 +24,17 @@ public: // --------------------------------- Public interface ------------------
   SpMSpV(const SpMSpV&) = delete;
   SpMSpV& operator=(const SpMSpV&) = delete;
 
-  // Compute y = a * x and return y
+  // Compute y = a * x and return y.
   //
   // Args:
   //   a:   Input matrix (first operand).
   //        The number of non-zero elements in this matrix may not exceed MAX_MATRIX_NNZ.
-  //        The matrix is assumed not to contain NaN values.  
+  //        The matrix is assumed not to contain NaN values.
   //   x:   Input vector (second operand).
   //   y:   Output vector. y.nz_values_ is assumed to be large enough to hold a.rows_ elements.
-  //
   void multiply(const SparseMatrix& a, const SparseVector& x, SparseVector* y);
 
-  // Upper bound on the number of non-zero elements in the input matrix.  
+  // Upper bound on the number of non-zero elements in the input matrix.
   static constexpr size_t MAX_MATRIX_NNZ = 1024 * 1024;
 
   // Number of worker threads.
@@ -46,7 +45,7 @@ public: // --------------------------------- Public interface ------------------
   static constexpr int NUM_BUCKETS = 8 * NUM_THREADS;
   
 private: // ------------------------ Private interface and data members -------------------------------
-  // Data structure that stores per-bucket state for parallel steps 2 and 3.
+  // Data structure that stores per-bucket state for steps 3 -5.
   struct alignas(64) BucketState {
     // The starting offset of this bucket in the scaled_values_ array.
     size_t start_offset_;
@@ -54,7 +53,7 @@ private: // ------------------------ Private interface and data members --------
     // The number of elements in this bucket.
     size_t size_;
 
-    // The number of valid elements in the uinds_ array.
+    // The number of elements in the uinds_ array.
     size_t num_uinds_;
 
     // A list of unique output vector indices.

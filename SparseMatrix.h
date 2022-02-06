@@ -20,12 +20,9 @@ public:
   // Move constructor
   SparseMatrix(SparseMatrix&&);
 
-  // Copy constructors intentionally disabled
+  // Copy constructor and assignment operators intentionally disabled
   SparseMatrix(const SparseMatrix&) = delete;
-
-  // Copy and move assignment operators intentionally disabled
   SparseMatrix& operator=(const SparseMatrix&) = delete;
-  SparseMatrix& operator=(const SparseMatrix&&) = delete;
 
   // The number of rows in this matrix.
   const size_t rows_;

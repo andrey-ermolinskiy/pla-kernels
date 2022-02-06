@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-#include <string>
 #include <utility>
 
 #include "common_defs.h"
@@ -17,7 +15,7 @@ public:
   };
 #pragma pack(pop)
   
-  // Constructor: Initialize a sparse vector and pre-allocate space for nz_values_array.
+  // Constructor: Initialize a sparse vector and pre-allocate space for the nz_values_ array.
   //   nnz_ is initialized to 0.
   //
   // Args:
@@ -27,12 +25,9 @@ public:
   // Destructor
   ~SparseVector();
 
-  // Return the dense representation of this vector as a human-readable string.
-  std::string asString() const;
-
   // Move constructor
   SparseVector(SparseVector&&);
-  
+
   // Copy constructor and assignment operators intentionally disabled.
   SparseVector(const SparseVector&) = delete;
   SparseVector& operator=(const SparseVector&) = delete;
