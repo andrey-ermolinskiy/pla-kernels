@@ -17,13 +17,13 @@ ljournal-2008 is an adjacency matrix of the LiveJournal social network containin
 <img src="eval/spmspv/runtime-ljournal-2008.png" width="60%" height="60%">
 
 ##### Results on hugetrace-00020
-hugetrace-00020 is a high-diameter graph representing frames from a two-dimensional adaptive numerical simulation. It contains approximately 16M vertices and 48M edges. We use the same methodology as above and report the average SpMSpV runtime as a function of thread count for several input vector sparsity patterns.
+hugetrace-00020 is a high-diameter graph representing frames from a two-dimensional adaptive numerical simulation. It contains approximately 16M vertices and 24M edges. We use the same methodology as above and report the average SpMSpV runtime as a function of thread count for several input vector sparsity patterns.
 
 <img src="eval/spmspv/runtime-hugetrace-00020.png" width="60%" height="60%"> 
 
 ##### Evaluation platform
-Our measurements were conducted on a dual-socket 48-core Intel ...
-L1 cache L2 cache. (B . 
+Our measurements were conducted on a dual-socket 2.9GHz Intel Cascade Lake Xeon server with 24 cores per socket and 35.75MB of L3 cache. Peak memory bandwidth (as reported by <a href="https://www.intel.com/content/www/us/en/developer/articles/tool/intelr-memory-latency-checker.html">mlc</a>) is 80GB/s per node.
+
 
 ## References
 <a id="1">[1]</a> 
