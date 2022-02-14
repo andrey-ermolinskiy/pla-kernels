@@ -12,7 +12,7 @@ Sparse matrix-sparse vector (SpMSpV) multiplication of the form y = Ax is a wide
 To assess the performance and strong scaling of our SpMSpV-bucket implementation, we measure its runtime on several representative matrix inputs taken from the University of Florida sparse matrix collection [[2]](#2). In each experiment, we multiply the input matrix A by a randomly generated sparse input vector x, varying the degree of sparsity in x and the number of threads.
 
 ##### Results on ljournal-2008 
-ljournal-2008 is an adjacency matrix of the LiveJournal social network containing approximately 5.36M vertices and 79M edges. We multiply the input matrix by a sparse vector with 25K, 250K, and 2.5M nonzero values and report the runtime (averaged over 1000 iterations) as a function of thread count.
+ljournal-2008 is an adjacency matrix of the LiveJournal social network containing approximately 5.36M vertices and 79M edges. We multiply this matrix by a sparse vector with 25K, 250K, and 2.5M nonzero values and report the runtime (averaged over 1000 iterations) as a function of thread count.
 
 <img src="eval/spmspv/runtime-ljournal-2008.png" width="60%" height="60%">
 
